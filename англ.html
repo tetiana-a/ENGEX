@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Говори без думання</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060608;
+    --card: #0d0d12;
+    --border: #1a1a24;
+    --text: #eae6df;
+    --muted: #7a7488;
+    --rose: #e85d75;
+    --rose-dim: rgba(232,93,117,0.08);
+    --teal: #3dd9b6;
+    --teal-dim: rgba(61,217,182,0.08);
+    --amber: #e8b84c;
+    --amber-dim: rgba(232,184,76,0.08);
+    --violet: #a78bfa;
+    --violet-dim: rgba(167,139,250,0.08);
+    --sky: #38bdf8;
+    --sky-dim: rgba(56,189,248,0.08);
+    --lime: #a3e635;
+    --lime-dim: rgba(163,230,53,0.08);
+    --coral: #fb7185;
+    --peach: #fbbf24;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    line-height: 1.75;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ===== CANVAS ФОН ===== */
+  #bgCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ===== ЄДИНИЙ СТИЛЬ РАМОК ===== */
+  .fr { position: relative; overflow: hidden; }
+
+  .fr .f-tl, .fr .f-tr, .fr .f-bl, .fr .f-br {
+    position: absolute;
+    width: 22px; height: 22px;
+    border-style: solid; border-width: 0;
+    opacity: 0.3;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none; z-index: 2;
+  }
+
+  .fr .f-tl { top: 8px; left: 8px; border-top-width: 1px; border-left-width: 1px; }
+  .fr .f-tr { top: 8px; right: 8px; border-top-width: 1px; border-right-width: 1px; }
+  .fr .f-bl { bottom: 8px; left: 8px; border-bottom-width: 1px; border-left-width: 1px; }
+  .fr .f-br { bottom: 8px; right: 8px; border-bottom-width: 1px; border-right-width: 1px; }
+
+  .fr:hover .f-tl, .fr:hover .f-tr, .fr:hover .f-bl, .fr:hover .f-br { opacity: 0.9; width: 38px; height: 38px; }
+
+  .fr .f-top {
+    position: absolute; top: 0; left: 0;
+    width: 0; height: 2px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+  }
+
+  .fr:hover .f-top { width: 100%; }
+
+  .fc-rose .f-tl, .fc-rose .f-tr, .fc-rose .f-bl, .fc-rose .f-br { border-color: var(--rose); }
+  .fc-rose .f-top { background: linear-gradient(to right, var(--rose), transparent); }
+  .fc-rose { border-color: var(--border); }
+  .fc-rose:hover { border-color: rgba(232,93,117,0.25); }
+
+  .fc-teal .f-tl, .fc-teal .f-tr, .fc-teal .f-bl, .fc-teal .f-br { border-color: var(--teal); }
+  .fc-teal .f-top { background: linear-gradient(to right, var(--teal), transparent); }
+  .fc-teal { border-color: var(--border); }
+  .fc-teal:hover { border-color: rgba(61,217,182,0.25); }
+
+  .fc-amber .f-tl, .fc-amber .f-tr, .fc-amber .f-bl, .fc-amber .f-br { border-color: var(--amber); }
+  .fc-amber .f-top { background: linear-gradient(to right, var(--amber), transparent); }
+  .fc-amber { border-color: var(--border); }
+  .fc-amber:hover { border-color: rgba(232,184,76,0.25); }
+
+  .fc-violet .f-tl, .fc-violet .f-tr, .fc-violet .f-bl, .fc-violet .f-br { border-color: var(--violet); }
+  .fc-violet .f-top { background: linear-gradient(to right, var(--violet), transparent); }
+  .fc-violet { border-color: var(--border); }
+  .fc-violet:hover { border-color: rgba(167,139,250,0.25); }
+
+  .fc-sky .f-tl, .fc-sky .f-tr, .fc-sky .f-bl, .fc-sky .f-br { border-color: var(--sky); }
+  .fc-sky .f-top { background: linear-gradient(to right, var(--sky), transparent); }
+  .fc-sky { border-color: var(--border); }
+  .fc-sky:hover { border-color: rgba(56,189,248,0.25); }
+
+  .fc-lime .f-tl, .fc-lime .f-tr, .fc-lime .f-bl, .fc-lime .f-br { border-color: var(--lime); }
+  .fc-lime .f-top { background: linear-gradient(to right, var(--lime), transparent); }
+  .fc-lime { border-color: var(--border); }
+  .fc-lime:hover { border-color: rgba(163,230,53,0.25); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 40px 36px;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: none;
+  }
+
+  .card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+
+  /* Зерно */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.35;
+  }
+
+  /* Курсор */
+  .heart-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999999;
+    width: 30px; height: 30px;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 0 8px rgba(232,93,117,0.5));
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s;
+  }
+
+  .heart-cursor.hovering { transform: translate(-50%, -50%) scale(1.5); filter: drop-shadow(0 0 14px rgba(232,93,117,0.9)); }
+  .heart-cursor svg { width: 100%; height: 100%; }
+
+  .heart-trail {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999998;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Навбар */
+  .lang-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 20px;
+    background: rgba(6,6,8,0.88);
+    backdrop-filter: blur(30px) saturate(1.8);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lang-bar .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    margin-right: 32px;
+    background: linear-gradient(135deg, var(--rose), var(--violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .lang-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 7px 18px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    cursor: none;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 2px;
+  }
+
+  .lang-btn:hover { color: var(--bg); border-color: var(--rose); background: var(--rose); transform: translateY(-2px); }
+  .lang-btn.active { color: var(--bg); border-color: var(--rose); background: var(--rose); }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .hero-frame {
+    position: absolute;
+    inset: 36px;
+    pointer-events: none;
+    opacity: 0;
+    animation: heroFrameIn 2s ease forwards 0.5s;
+  }
+
+  .hero-frame .hf { position: absolute; width: 40px; height: 40px; border-style: solid; border-width: 0; }
+  .hero-frame .hf1 { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; border-color: rgba(232,93,117,0.2); }
+  .hero-frame .hf2 { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; border-color: rgba(61,217,182,0.2); }
+  .hero-frame .hf3 { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; border-color: rgba(167,139,250,0.2); }
+  .hero-frame .hf4 { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; border-color: rgba(232,184,76,0.2); }
+
+  @keyframes heroFrameIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+
+  .hero-line {
+    width: 0; height: 1px;
+    background: linear-gradient(to right, var(--rose), var(--violet), var(--teal), transparent);
+    margin: 32px auto;
+    animation: lineExpand 1.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.8s;
+  }
+
+  @keyframes lineExpand { to { width: 360px; } }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.3s;
+    background: linear-gradient(90deg, var(--rose), var(--amber));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3.5rem, 10vw, 9rem);
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    margin-bottom: 0;
+    opacity: 0;
+    animation: titleReveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.5s;
+  }
+
+  .hero-title .line-gold {
+    display: block;
+    background: linear-gradient(135deg, var(--rose), var(--coral), var(--peach));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-title .line-dim {
+    color: var(--muted);
+    font-weight: 300;
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.4em;
+    display: block;
+    margin-top: 16px;
+    letter-spacing: 0.05em;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 1.4s;
+  }
+
+  .hero-title .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(100%);
+    animation: charUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes charUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes titleReveal { from { opacity: 1; } to { opacity: 1; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+  .hero-sub {
+    max-width: 540px;
+    color: var(--muted);
+    font-size: 1.2rem;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 1.6s;
+  }
+
+  .scroll-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 2s;
+  }
+
+  .scroll-arrow {
+    width: 20px; height: 20px;
+    border-right: 1px solid var(--rose);
+    border-bottom: 1px solid var(--rose);
+    transform: rotate(45deg);
+    opacity: 0.4;
+    animation: arrowBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes arrowBounce {
+    0%, 100% { transform: rotate(45deg) translate(0, 0); opacity: 0.4; }
+    50% { transform: rotate(45deg) translate(4px, 4px); opacity: 0.9; }
+  }
+
+  /* Sections */
+  .section {
+    padding: 110px 24px;
+    max-width: 1020px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-bottom: 56px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .section-label .sl-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    animation: dotPulse 3s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+
+  .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--border), transparent); }
+
+  .sl-rose { color: var(--rose); } .sl-rose .sl-dot { background: var(--rose); box-shadow: 0 0 10px var(--rose); }
+  .sl-teal { color: var(--teal); } .sl-teal .sl-dot { background: var(--teal); box-shadow: 0 0 10px var(--teal); }
+  .sl-amber { color: var(--amber); } .sl-amber .sl-dot { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+  .sl-violet { color: var(--violet); } .sl-violet .sl-dot { background: var(--violet); box-shadow: 0 0 10px var(--violet); }
+  .sl-sky { color: var(--sky); } .sl-sky .sl-dot { background: var(--sky); box-shadow: 0 0 10px var(--sky); }
+  .sl-lime { color: var(--lime); } .sl-lime .sl-dot { background: var(--lime); box-shadow: 0 0 10px var(--lime); }
+
+  /* Problem */
+  .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 56px; }
+  @media (max-width: 640px) { .problem-grid { grid-template-columns: 1fr; } }
+
+  .card-num { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.2em; margin-bottom: 20px; opacity: 0.5; }
+  .pc-rose .card-num { color: var(--rose); }
+  .pc-teal .card-num { color: var(--teal); }
+  .pc-amber .card-num { color: var(--amber); }
+  .pc-violet .card-num { color: var(--violet); }
+
+  .card-title { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 700; margin-bottom: 14px; line-height: 1.25; }
+  .card-body { color: var(--muted); font-size: 1.1rem; line-height: 1.85; }
+
+  /* Flow */
+  .flow { background: var(--card); border: 1px solid var(--border); padding: 48px; margin: 20px 0; position: relative; overflow: hidden; transition: border-color 0.5s; }
+  .flow.fl-bad:hover { border-color: rgba(232,93,117,0.2); }
+  .flow.fl-good:hover { border-color: rgba(61,217,182,0.2); }
+
+  .flow-title { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 32px; }
+  .flow-title.bad { color: var(--rose); }
+  .flow-title.good { color: var(--teal); }
+
+  .flow-steps { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+  .flow-step { padding: 9px 20px; font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 0.05em; white-space: nowrap; transition: all 0.3s; border-radius: 2px; }
+  .flow-step.bad { background: var(--rose-dim); border: 1px solid rgba(232,93,117,0.2); color: var(--coral); }
+  .flow-step.good { background: var(--teal-dim); border: 1px solid rgba(61,217,182,0.2); color: var(--teal); }
+  .flow-step:hover { transform: scale(1.06); }
+  .flow-arrow { color: var(--muted); font-size: 16px; opacity: 0.4; }
+  .flow-block { color: var(--rose); font-size: 20px; }
+  .flow-check { color: var(--teal); font-size: 20px; }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 12px; }
+
+  .step {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    background: var(--card);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: none;
+    position: relative;
+  }
+
+  .step:hover { transform: translateX(8px); }
+  .step .step-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; opacity: 0; transition: opacity 0.4s; }
+  .step:hover .step-accent { opacity: 1; }
+
+  .sa-rose .step-accent { background: var(--rose); } .sa-rose:hover { border-color: rgba(232,93,117,0.2); box-shadow: -4px 0 0 var(--rose); }
+  .sa-teal .step-accent { background: var(--teal); } .sa-teal:hover { border-color: rgba(61,217,182,0.2); box-shadow: -4px 0 0 var(--teal); }
+  .sa-amber .step-accent { background: var(--amber); } .sa-amber:hover { border-color: rgba(232,184,76,0.2); box-shadow: -4px 0 0 var(--amber); }
+  .sa-violet .step-accent { background: var(--violet); } .sa-violet:hover { border-color: rgba(167,139,250,0.2); box-shadow: -4px 0 0 var(--violet); }
+  .sa-sky .step-accent { background: var(--sky); } .sa-sky:hover { border-color: rgba(56,189,248,0.2); box-shadow: -4px 0 0 var(--sky); }
+
+  .step-num { display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; min-height: 110px; transition: all 0.5s; }
+  .sa-rose .step-num { background: var(--rose-dim); color: var(--rose); }
+  .sa-teal .step-num { background: var(--teal-dim); color: var(--teal); }
+  .sa-amber .step-num { background: var(--amber-dim); color: var(--amber); }
+  .sa-violet .step-num { background: var(--violet-dim); color: var(--violet); }
+  .sa-sky .step-num { background: var(--sky-dim); color: var(--sky); }
+  .step:hover .step-num { filter: brightness(1.3); }
+
+  .step-content { padding: 28px 32px; }
+  .step-heading { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+  .step-text { color: var(--muted); font-size: 1.05rem; line-height: 1.85; }
+
+  /* Examples */
+  .example-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 640px) { .example-pair { grid-template-columns: 1fr; } }
+
+  .ex { padding: 32px; font-family: 'DM Mono', monospace; font-size: 14px; line-height: 2; cursor: none; }
+  .ex.bad { background: rgba(232,93,117,0.03); border: 1px solid rgba(232,93,117,0.12); }
+  .ex.good { background: rgba(61,217,182,0.03); border: 1px solid rgba(61,217,182,0.12); }
+  .ex-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 14px; }
+  .ex.bad .ex-label { color: var(--rose); }
+  .ex.good .ex-label { color: var(--teal); }
+
+  /* Situations */
+  .situation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 44px; }
+  .situation-card { padding: 28px; cursor: none; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .situation-card:hover { transform: translateY(-4px); box-shadow: 0 14px 44px rgba(0,0,0,0.35); }
+  .situation-card .sc-icon { font-size: 28px; margin-bottom: 16px; display: block; }
+  .situation-card .sc-title { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+  .situation-card .sc-count { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; }
+
+  /* Templates */
+  .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .template-card { padding: 28px; cursor: none; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .template-card:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(0,0,0,0.3); }
+
+  .template-card .tc-num { position: absolute; top: 10px; right: 12px; font-family: 'DM Mono', monospace; font-size: 10px; opacity: 0; transition: opacity 0.4s; }
+  .tc-rose .tc-num { color: var(--rose); }
+  .tc-teal .tc-num { color: var(--teal); }
+  .tc-amber .tc-num { color: var(--amber); }
+  .tc-violet .tc-num { color: var(--violet); }
+  .tc-sky .tc-num { color: var(--sky); }
+  .tc-lime .tc-num { color: var(--lime); }
+  .template-card:hover .tc-num { opacity: 0.25; }
+
+  .template-tag { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 14px; }
+  .tc-rose .template-tag { color: var(--rose); }
+  .tc-teal .template-tag { color: var(--teal); }
+  .tc-amber .template-tag { color: var(--amber); }
+  .tc-violet .template-tag { color: var(--violet); }
+  .tc-sky .template-tag { color: var(--sky); }
+  .tc-lime .template-tag { color: var(--lime); }
+
+  .template-phrase { font-size: 1.2rem; margin-bottom: 6px; line-height: 1.4; transition: color 0.3s; }
+  .template-card:hover .template-phrase { color: #fff; }
+  .template-translation { font-size: 0.95rem; color: var(--muted); font-style: italic; }
+
+  /* Mistakes */
+  .mistakes-grid { display: flex; flex-direction: column; gap: 12px; }
+  .mistake-row { display: grid; grid-template-columns: 48px 1fr 1fr; background: var(--card); border: 1px solid var(--border); overflow: hidden; transition: all 0.4s; cursor: none; align-items: stretch; }
+  @media (max-width: 640px) { .mistake-row { grid-template-columns: 48px 1fr; } .mistake-row .mr-good { display: none; } }
+  .mistake-row:hover { border-color: rgba(167,139,250,0.2); transform: translateX(4px); }
+  .mr-num { display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 13px; background: var(--violet-dim); color: var(--violet); border-right: 1px solid var(--border); }
+  .mr-bad, .mr-good { padding: 22px 24px; font-family: 'DM Mono', monospace; font-size: 14px; line-height: 1.7; }
+  .mr-bad { border-right: 1px solid var(--border); color: var(--coral); background: rgba(232,93,117,0.02); }
+  .mr-good { color: var(--teal); background: rgba(61,217,182,0.02); }
+  .mr-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; opacity: 0.5; }
+
+  /* Practice */
+  .practice-block { background: var(--card); border: 1px solid var(--border); padding: 44px; margin: 18px 0; position: relative; overflow: hidden; transition: border-color 0.5s; }
+  .pb-rose:hover { border-color: rgba(232,93,117,0.2); }
+  .pb-teal:hover { border-color: rgba(61,217,182,0.2); }
+  .pb-violet:hover { border-color: rgba(167,139,250,0.2); }
+
+  .pb-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+  .pb-desc { color: var(--muted); font-size: 1.1rem; line-height: 1.85; margin-bottom: 20px; }
+  .pb-steps { display: flex; flex-direction: column; gap: 10px; }
+  .pb-step { display: flex; align-items: flex-start; gap: 14px; font-family: 'DM Mono', monospace; font-size: 13px; line-height: 1.8; color: var(--muted); }
+  .pb-step-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-top: 3px; }
+  .pb-rose .pb-step-num { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(232,93,117,0.2); }
+  .pb-teal .pb-step-num { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(61,217,182,0.2); }
+  .pb-violet .pb-step-num { background: var(--violet-dim); color: var(--violet); border: 1px solid rgba(167,139,250,0.2); }
+
+  /* Quote */
+  .big-quote { text-align: center; padding: 110px 24px; position: relative; z-index: 1; }
+  .big-quote::before { content: ''; position: absolute; top: 50%; left: 50%; width: 420px; height: 420px; transform: translate(-50%, -50%); background: radial-gradient(ellipse, rgba(232,93,117,0.04) 0%, rgba(167,139,250,0.02) 50%, transparent 70%); pointer-events: none; }
+
+  .quote-frame { position: relative; display: inline-block; padding: 64px 80px; }
+  .quote-frame .qf { position: absolute; width: 32px; height: 32px; border-style: solid; border-width: 0; transition: all 0.6s; }
+  .quote-frame .qf1 { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; border-color: rgba(232,93,117,0.25); }
+  .quote-frame .qf2 { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; border-color: rgba(61,217,182,0.25); }
+  .quote-frame .qf3 { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; border-color: rgba(167,139,250,0.25); }
+  .quote-frame .qf4 { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; border-color: rgba(232,184,76,0.25); }
+
+  .big-quote blockquote { font-size: clamp(2rem, 4.5vw, 3.5rem); font-weight: 300; font-style: italic; line-height: 1.4; max-width: 720px; margin: 0 auto; }
+  .big-quote blockquote .hl-rose { color: var(--rose); }
+  .big-quote blockquote .hl-teal { color: var(--teal); }
+  .big-quote cite { display: block; margin-top: 32px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.25em; color: var(--muted); font-style: normal; }
+
+  /* Divider */
+  .divider-wrap { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 40px 24px; position: relative; z-index: 1; }
+  .divider-line { width: 70px; height: 1px; }
+  .divider-line:first-child { background: linear-gradient(to right, transparent, var(--border)); }
+  .divider-line:last-child { background: linear-gradient(to left, transparent, var(--border)); }
+  .divider-diamond { width: 6px; height: 6px; border: 1px solid rgba(232,93,117,0.3); transform: rotate(45deg); animation: dotPulse 4s ease-in-out infinite; }
+
+  footer { border-top: 1px solid var(--border); padding: 48px 24px; text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.3em; color: var(--muted); position: relative; z-index: 1; }
+  footer span { background: linear-gradient(90deg, var(--rose), var(--violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  .stagger-children > * { opacity: 0; transform: translateY(25px); transition: opacity 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .stagger-children.visible > *:nth-child(1) { transition-delay: 0s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(2) { transition-delay: 0.06s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(3) { transition-delay: 0.12s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(4) { transition-delay: 0.18s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(5) { transition-delay: 0.24s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(6) { transition-delay: 0.30s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(7) { transition-delay: 0.36s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(8) { transition-delay: 0.42s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(9) { transition-delay: 0.48s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(10) { transition-delay: 0.54s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(11) { transition-delay: 0.60s; opacity: 1; transform: translateY(0); }
+  .stagger-children.visible > *:nth-child(12) { transition-delay: 0.66s; opacity: 1; transform: translateY(0); }
+
+  [data-lang] { display: none; }
+  [data-lang].active { display: inline; }
+
+  .section-sub-label { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 20px; opacity: 0.7; }
+
+  ::selection { background: rgba(232,93,117,0.2); color: #fff; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--rose); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Анімований canvas фон -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- Серцевидний курсор -->
+<div class="heart-cursor" id="heartCursor">
+  <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 28S3 20 3 11a6.5 6.5 0 0 1 13-1 6.5 6.5 0 0 1 13 1c0 9-13 17-13 17z" fill="rgba(232,93,117,0.85)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+    <path d="M16 24S7 18 7 12a4.5 4.5 0 0 1 9-0.5A4.5 4.5 0 0 1 25 12c0 6-9 12-9 12z" fill="rgba(255,150,170,0.4)"/>
+  </svg>
+</div>
+<div class="heart-trail" id="trail0"></div>
+<div class="heart-trail" id="trail1"></div>
+<div class="heart-trail" id="trail2"></div>
+
+<!-- Навбар -->
+<nav class="lang-bar">
+  <div class="logo">SWT</div>
+  <button class="lang-btn active" onclick="setLang('uk')">УКР</button>
+  <button class="lang-btn" onclick="setLang('cs')">ČES</button>
+  <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+  <button class="lang-btn" onclick="setLang('en')">ENG</button>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-frame"><span class="hf hf1"></span><span class="hf hf2"></span><span class="hf hf3"></span><span class="hf hf4"></span></div>
+  <p class="hero-eyebrow" data-uk data-cs data-ru data-en>
+    <span data-lang="uk" class="active">Метод вивчення мови</span>
+    <span data-lang="cs">Metoda učení jazyka</span>
+    <span data-lang="ru">Метод изучения языка</span>
+    <span data-lang="en">Language Learning Method</span>
+  </p>
+  <h1 class="hero-title" id="heroTitle">
+    <span class="line-gold" data-uk data-cs data-ru data-en>
+      <span data-lang="uk" class="active">Говори</span><span data-lang="cs">Mluv</span><span data-lang="ru">Говори</span><span data-lang="en">Speak</span>
+    </span>
+    <span class="line-dim" data-uk data-cs data-ru data-en>
+      <span data-lang="uk" class="active">без думання</span><span data-lang="cs">bez přemýšlení</span><span data-lang="ru">без раздумий</span><span data-lang="en">without thinking</span>
+    </span>
+  </h1>
+  <div class="hero-line"></div>
+  <p class="hero-sub" data-uk data-cs data-ru data-en>
+    <span data-lang="uk" class="active">Система, яка перетворює переклад на автоматичну реакцію. Для тих, хто вже знає, але не може говорити.</span>
+    <span data-lang="cs">Systém, který překlad mění v automatickou reakci. Pro ty, kteří vědí, ale nemohou mluvit.</span>
+    <span data-lang="ru">Система, которая превращает перевод в автоматическую реакцию. Для тех, кто знает, но не может говорить.</span>
+    <span data-lang="en">A system that transforms translation into automatic response. For those who know but cannot speak.</span>
+  </p>
+  <div class="scroll-hint">
+    <div class="scroll-arrow"></div>
+    <span data-uk data-cs data-ru data-en><span data-lang="uk" class="active">прокрути</span><span data-lang="cs">posuňte</span><span data-lang="ru">прокрути</span><span data-lang="en">scroll</span></span>
+  </div>
+</section>
+
+<div class="divider-wrap"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+<!-- 01 Проблема -->
+<section class="section">
+  <p class="section-label sl-rose"><span class="sl-dot"></span>
+    <span data-lang="uk" class="active">01 — Проблема</span><span data-lang="cs">01 — Problém</span><span data-lang="ru">01 — Проблема</span><span data-lang="en">01 — Problem</span>
+  </p>
+  <div class="problem-grid stagger-children reveal">
+    <div class="card fr fc-rose pc-rose"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+      <p class="card-num">01.A</p>
+      <h3 class="card-title"><span data-lang="uk" class="active">Перевантажений мозок</span><span data-lang="cs">Přetížený mozek</span><span data-lang="ru">Перегруженный мозг</span><span data-lang="en">Overloaded Brain</span></h3>
+      <p class="card-body"><span data-lang="uk" class="active">Коли тебе питають — включається не просто "відповісти", а аналіз ситуації, оцінка правильності, страх помилки. Мозок зависає.</span><span data-lang="cs">Když vás někdo ptá — nespouští se jen "odpovědět", ale analýza situace, hodnocení správnosti, strach z chyby. Mozek se zasekne.</span><span data-lang="ru">Когда тебя спрашивают — включается не просто "ответить", а анализ ситуации, оценка правильности, страх ошибки. Мозг зависает.</span><span data-lang="en">When asked — it's not just "answer", but situation analysis, correctness assessment, fear of mistake. The brain freezes.</span></p>
+    </div>
+    <div class="card fr fc-teal pc-teal"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+      <p class="card-num">01.B</p>
+      <h3 class="card-title"><span data-lang="uk" class="active">Конфлікт мов</span><span data-lang="cs">Konflikt jazyků</span><span data-lang="ru">Конфликт языков</span><span data-lang="en">Language Conflict</span></h3>
+      <p class="card-body"><span data-lang="uk" class="active">Думка → рідна мова → чеська → українська → англійська. Чотири переклади замість одного прямого виходу.</span><span data-lang="cs">Myšlenka → rodný jazyk → čeština → angličtina. Čtyři překlady místo jednoho přímého výstupu.</span><span data-lang="ru">Мысль → родной язык → чешский → украинский → английский. Четыре перевода вместо одного прямого выхода.</span><span data-lang="en">Thought → native → Czech → Ukrainian → English. Four translations instead of one direct output.</span></p>
+    </div>
+    <div class="card fr fc-amber pc-amber"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+      <p class="card-num">01.C</p>
+      <h3 class="card-title"><span data-lang="uk" class="active">Параліч аналізу</span><span data-lang="cs">Paralýza analýzou</span><span data-lang="ru">Паралич анализа</span><span data-lang="en">Analysis Paralysis</span></h3>
+      <p class="card-body"><span data-lang="uk" class="active">Бажання сказати ідеально блокує будь-яке говоріння. Чекаєш правильного моменту — і він ніколи не настає.</span><span data-lang="cs">Touha říci to perfektně blokuje jakékoli mluvení. Čekáte na správný okamžik — a ten nikdy nepřichází.</span><span data-lang="ru">Желание сказать идеально блокирует любое говорение. Ждёшь правильного момента — и он никогда не наступает.</span><span data-lang="en">The desire to speak perfectly blocks any speaking. Waiting for the right moment — that never comes.</span></p>
+    </div>
+    <div class="card fr fc-violet pc-violet"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+      <p class="card-num">01.D</p>
+      <h3 class="card-title"><span data-lang="uk" class="active">Знання ≠ Мова</span><span data-lang="cs">Znalost ≠ Jazyk</span><span data-lang="ru">Знание ≠ Язык</span><span data-lang="en">Knowledge ≠ Language</span></h3>
+      <p class="card-body"><span data-lang="uk" class="active">Ти можеш знати слова, але не мати рефлексу. Мова — це навичка, як спорт. Потрібен автоматизм, а не словник.</span><span data-lang="cs">Můžete znát slova, ale nemít reflex. Jazyk je dovednost jako sport. Potřebujete automatismus, ne slovník.</span><span data-lang="ru">Ты можешь знать слова, но не иметь рефлекса. Язык — это навык, как спорт. Нужен автоматизм, а не словарь.</span><span data-lang="en">You may know words but lack the reflex. Language is a skill like sport. You need automatism, not a dictionary.</span></p>
+    </div>
+  </div>
+
+  <div class="flow fl-bad fr fc-rose reveal"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+    <p class="flow-title bad"><span data-lang="uk" class="active">Як зараз</span><span data-lang="cs">Jak je to teď</span><span data-lang="ru">Как сейчас</span><span data-lang="en">Current process</span></p>
+    <div class="flow-steps">
+      <div class="flow-step bad"><span data-lang="uk" class="active">Думка</span><span data-lang="cs">Myšlenka</span><span data-lang="ru">Мысль</span><span data-lang="en">Thought</span></div><span class="flow-arrow">→</span>
+      <div class="flow-step bad"><span data-lang="uk" class="active">Рідна мова</span><span data-lang="cs">Rodný jazyk</span><span data-lang="ru">Родной язык</span><span data-lang="en">Native lang</span></div><span class="flow-arrow">→</span>
+      <div class="flow-step bad"><span data-lang="uk" class="active">Чеська</span><span data-lang="cs">Čeština</span><span data-lang="ru">Чешский</span><span data-lang="en">Czech</span></div><span class="flow-arrow">→</span>
+      <div class="flow-step bad"><span data-lang="uk" class="active">Переклад</span><span data-lang="cs">Překlad</span><span data-lang="ru">Перевод</span><span data-lang="en">Translate</span></div><span class="flow-arrow">→</span>
+      <div class="flow-step bad"><span data-lang="uk" class="active">Англійська</span><span data-lang="cs">Angličtina</span><span data-lang="ru">Английский</span><span data-lang="en">English</span></div><span class="flow-arrow">→</span>
+      <div class="flow-step bad"><span data-lang="uk" class="active">Перевірка</span><span data-lang="cs">Kontrola</span><span data-lang="ru">Проверка</span><span data-lang="en">Check</span></div><span class="flow-arrow">→</span>
+      <span class="flow-block">⛔</span>
+    </div>
+  </div>
+
+  <div class="flow fl-good fr fc-teal reveal"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+    <p class="flow-title good"><span data-lang="uk" class="active">Як має бути</span><span data-lang="cs">Jak to má být</span><span data-lang="ru">Как должно быть</span><span data-lang="en">How it should be</span></p>
+    <div class="flow-steps">
+      <div class="flow-step good"><span data-lang="uk" class="active">Думка</span><span data-lang="cs">Myšlenka</span><span data-lang="ru">Мысль</span><span data-lang="en">Thought</span></div><span class="flow-arrow">→</span>
+      <div class="flow-step good"><span data-lang="uk" class="active">Готова фраза англійською</span><span data-lang="cs">Hotová anglická fráze</span><span data-lang="ru">Готовая фраза на английском</span><span data-lang="en">Ready English phrase</span></div><span class="flow-arrow">→</span>
+      <span class="flow-check">✓</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider-wrap"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+<!-- 02 Рішення -->
+<section class="section">
+  <p class="section-label sl-teal"><span class="sl-dot"></span>
+    <span data-lang="uk" class="active">02 — Рішення</span><span data-lang="cs">02 — Řešení</span><span data-lang="ru">02 — Решение</span><span data-lang="en">02 — Solution</span>
+  </p>
+  <div class="steps stagger-children reveal">
+    <div class="step sa-rose"><span class="step-accent"></span><div class="step-num">1</div><div class="step-content"><h3 class="step-heading"><span data-lang="uk" class="active">Вчи фрази, не слова</span><span data-lang="cs">Uč se fráze, ne slova</span><span data-lang="ru">Учи фразы, не слова</span><span data-lang="en">Learn phrases, not words</span></h3><p class="step-text"><span data-lang="uk" class="active">Мозок запам'ятовує шаблони, а не переклад. "I need help" — це один блок, а не три слова з перекладом.</span><span data-lang="cs">Mozek si pamatuje vzory, ne překlad. "I need help" je jeden blok, ne tři slova s překladem.</span><span data-lang="ru">Мозг запоминает шаблоны, а не перевод. "I need help" — это один блок, а не три слова с переводом.</span><span data-lang="en">The brain remembers patterns, not translations. "I need help" is one block, not three words.</span></p></div></div>
+    <div class="step sa-teal"><span class="step-accent"></span><div class="step-num">2</div><div class="step-content"><h3 class="step-heading"><span data-lang="uk" class="active">Повторюй до автоматизму</span><span data-lang="cs">Opakuj do automatismu</span><span data-lang="ru">Повторяй до автоматизма</span><span data-lang="en">Repeat until automatic</span></h3><p class="step-text"><span data-lang="uk" class="active">Читай фразу → повторюй одразу → ще раз → ще → швидко. Без аналізу. Як качаєш м'яз.</span><span data-lang="cs">Přečti frázi → opakuj hned → ještě → ještě → rychle. Bez analýzy. Jako trénink svalu.</span><span data-lang="ru">Читай фразу → повторяй сразу → ещё → ещё → быстро. Без анализа. Как качаешь мышцу.</span><span data-lang="en">Read phrase → repeat immediately → again → again → fast. No analysis. Like training a muscle.</span></p></div></div>
+    <div class="step sa-amber"><span class="step-accent"></span><div class="step-num">3</div><div class="step-content"><h3 class="step-heading"><span data-lang="uk" class="active">Правило 3 секунд</span><span data-lang="cs">Pravidlo 3 sekund</span><span data-lang="ru">Правило 3 секунд</span><span data-lang="en">3-Second Rule</span></h3><p class="step-text"><span data-lang="uk" class="active">Коли питають — відповідай за 3 секунди. Навіть криво. "I go... work... yesterday" — це краще за мовчання.</span><span data-lang="cs">Když se ptají — odpověz do 3 sekund. I špatně. "I go... work... yesterday" — to je lepší než mlčení.</span><span data-lang="ru">Когда спрашивают — отвечай за 3 секунды. Даже криво. "I go... work... yesterday" — это лучше молчания.</span><span data-lang="en">When asked — answer in 3 seconds. Even broken. "I go... work... yesterday" — better than silence.</span></p></div></div>
+    <div class="step sa-violet"><span class="step-accent"></span><div class="step-num">4</div><div class="step-content"><h3 class="step-heading"><span data-lang="uk" class="active">Говори примітивно</span><span data-lang="cs">Mluv primitivně</span><span data-lang="ru">Говори примитивно</span><span data-lang="en">Speak simply</span></h3><p class="step-text"><span data-lang="uk" class="active">Забудь про красу. "Yesterday work. Busy day." — це правильно для твого етапу. Правильність приходить після швидкості.</span><span data-lang="cs">Zapomeň na krásu. "Yesterday work. Busy day." — to je správné pro vaši fázi. Správnost přichází po rychlosti.</span><span data-lang="ru">Забудь о красоте. "Yesterday work. Busy day." — это правильно для твоего этапа. Правильность приходит после скорости.</span><span data-lang="en">Forget beauty. "Yesterday work. Busy day." — correct for your stage. Accuracy comes after speed.</span></p></div></div>
+    <div class="step sa-sky"><span class="step-accent"></span><div class="step-num">5</div><div class="step-content"><h3 class="step-heading"><span data-lang="uk" class="active">Shadowing щодня</span><span data-lang="cs">Shadowing každý den</span><span data-lang="ru">Shadowing каждый день</span><span data-lang="en">Daily Shadowing</span></h3><p class="step-text"><span data-lang="uk" class="active">10 хвилин: слухаєш носія → повторюєш ОДРАЗУ за ним → без пауз → без аналізу. Як папуга.</span><span data-lang="cs">10 minut: posloucháš rodilého mluvčího → opakuješ HNED za ním → bez pauz → bez analýzy. Jako papoušek.</span><span data-lang="ru">10 минут: слушаешь носителя → повторяешь СРАЗУ за ним → без пауз → без анализа. Как попугай.</span><span data-lang="en">10 minutes: listen to native → repeat IMMEDIATELY → no pauses → no analysis. Like a parrot.</span></p></div></div>
+  </div>
+</section>
+
+<div class="divider-wrap"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+<!-- 03 Приклад -->
+<section class="section">
+  <p class="section-label sl-amber"><span class="sl-dot"></span>
+    <span data-lang="uk" class="active">03 — Приклад</span><span data-lang="cs">03 — Příklad</span><span data-lang="ru">03 — Пример</span><span data-lang="en">03 — Example</span>
+  </p>
+  <p class="reveal" style="color:var(--muted); margin-bottom: 36px; font-style: italic; font-size: 1.15rem;">
+    <span data-lang="uk" class="active">Ситуація: тебе питають "What did you do yesterday?"</span>
+    <span data-lang="cs">Situace: ptají se vás "What did you do yesterday?"</span>
+    <span data-lang="ru">Ситуация: тебя спрашивают "What did you do yesterday?"</span>
+    <span data-lang="en">Situation: you are asked "What did you do yesterday?"</span>
+  </p>
+  <div class="example-pair reveal">
+    <div class="ex bad fr fc-rose"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+      <p class="ex-label"><span data-lang="uk" class="active">Зараз</span><span data-lang="cs">Teď</span><span data-lang="ru">Сейчас</span><span data-lang="en">Current</span></p>
+      <p>думка (рідна мова)</p><p>→ переклад ×3</p><p>→ перевірка граматики</p><p>→ страх</p><p>→ <strong style="color:var(--rose)">мовчання</strong></p>
+    </div>
+    <div class="ex good fr fc-teal"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+      <p class="ex-label"><span data-lang="uk" class="active">Треба</span><span data-lang="cs">Cíl</span><span data-lang="ru">Надо</span><span data-lang="en">Target</span></p>
+      <p>думка</p><p>→ готова фраза</p><p><strong style="color:var(--teal)">"Yesterday I work.</strong></p><p><strong style="color:var(--teal)">Busy day."</strong></p><p>→ говориш. Одразу.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider-wrap"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+<!-- 04 Фрази за ситуаціями -->
+<section class="section">
+  <p class="section-label sl-violet"><span class="sl-dot"></span>
+    <span data-lang="uk" class="active">04 — Фрази за ситуаціями</span><span data-lang="cs">04 — Fráze podle situací</span><span data-lang="ru">04 — Фразы по ситуациям</span><span data-lang="en">04 — Phrases by Situation</span>
+  </p>
+  <div class="situation-grid stagger-children reveal">
+    <div class="card fr fc-rose situation-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="sc-icon">🍽️</span><p class="sc-title"><span data-lang="uk" class="active">Ресторан</span><span data-lang="cs">Restaurace</span><span data-lang="ru">Ресторан</span><span data-lang="en">Restaurant</span></p><p class="sc-count"><span data-lang="uk" class="active">6 фраз</span><span data-lang="cs">6 frází</span><span data-lang="ru">6 фраз</span><span data-lang="en">6 phrases</span></p></div>
+    <div class="card fr fc-teal situation-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="sc-icon">🛒</span><p class="sc-title"><span data-lang="uk" class="active">Магазин</span><span data-lang="cs">Obchod</span><span data-lang="ru">Магазин</span><span data-lang="en">Shopping</span></p><p class="sc-count"><span data-lang="uk" class="active">5 фраз</span><span data-lang="cs">5 frází</span><span data-lang="ru">5 фраз</span><span data-lang="en">5 phrases</span></p></div>
+    <div class="card fr fc-amber situation-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="sc-icon">💼</span><p class="sc-title"><span data-lang="uk" class="active">Робота</span><span data-lang="cs">Práce</span><span data-lang="ru">Работа</span><span data-lang="en">Work</span></p><p class="sc-count"><span data-lang="uk" class="active">5 фраз</span><span data-lang="cs">5 frází</span><span data-lang="ru">5 фраз</span><span data-lang="en">5 phrases</span></p></div>
+    <div class="card fr fc-violet situation-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="sc-icon">✈️</span><p class="sc-title"><span data-lang="uk" class="active">Подорож</span><span data-lang="cs">Cestování</span><span data-lang="ru">Путешествие</span><span data-lang="en">Travel</span></p><p class="sc-count"><span data-lang="uk" class="active">5 фраз</span><span data-lang="cs">5 frází</span><span data-lang="ru">5 фраз</span><span data-lang="en">5 phrases</span></p></div>
+    <div class="card fr fc-sky situation-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="sc-icon">🏥</span><p class="sc-title"><span data-lang="uk" class="active">Лікарня</span><span data-lang="cs">Nemocnice</span><span data-lang="ru">Больница</span><span data-lang="en">Hospital</span></p><p class="sc-count"><span data-lang="uk" class="active">4 фрази</span><span data-lang="cs">4 fráze</span><span data-lang="ru">4 фразы</span><span data-lang="en">4 phrases</span></p></div>
+    <div class="card fr fc-lime situation-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="sc-icon">🏠</span><p class="sc-title"><span data-lang="uk" class="active">Дім</span><span data-lang="cs">Domov</span><span data-lang="ru">Дом</span><span data-lang="en">Home</span></p><p class="sc-count"><span data-lang="uk" class="active">4 фрази</span><span data-lang="cs">4 fráze</span><span data-lang="ru">4 фразы</span><span data-lang="en">4 phrases</span></p></div>
+  </div>
+
+  <p class="section-sub-label" style="color:var(--rose)"><span data-lang="uk" class="active">🍽️ Ресторан</span><span data-lang="cs">🍽️ Restaurace</span><span data-lang="ru">🍽️ Ресторан</span><span data-lang="en">🍽️ Restaurant</span></p>
+  <div class="templates-grid stagger-children reveal">
+    <div class="card fr fc-rose tc-rose template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">01</span><p class="template-tag"><span data-lang="uk" class="active">Замовлення</span><span data-lang="cs">Objednávka</span><span data-lang="ru">Заказ</span><span data-lang="en">Order</span></p><p class="template-phrase">I would like...</p><p class="template-translation"><span data-lang="uk" class="active">Я б хотів...</span><span data-lang="cs">Chtěl bych...</span><span data-lang="ru">Я бы хотел...</span><span data-lang="en">I would like...</span></p></div>
+    <div class="card fr fc-rose tc-rose template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">02</span><p class="template-tag"><span data-lang="uk" class="active">Рахунок</span><span data-lang="cs">Účet</span><span data-lang="ru">Счёт</span><span data-lang="en">Bill</span></p><p class="template-phrase">Can I have the bill?</p><p class="template-translation"><span data-lang="uk" class="active">Можна рахунок?</span><span data-lang="cs">Můžu dostat účet?</span><span data-lang="ru">Можно счёт?</span><span data-lang="en">Can I have the bill?</span></p></div>
+    <div class="card fr fc-rose tc-rose template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">03</span><p class="template-tag"><span data-lang="uk" class="active">Смак</span><span data-lang="cs">Chuť</span><span data-lang="ru">Вкус</span><span data-lang="en">Taste</span></p><p class="template-phrase">This is delicious</p><p class="template-translation"><span data-lang="uk" class="active">Це дуже смачно</span><span data-lang="cs">To je výborné</span><span data-lang="ru">Это очень вкусно</span><span data-lang="en">This is delicious</span></p></div>
+    <div class="card fr fc-rose tc-rose template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">04</span><p class="template-tag"><span data-lang="uk" class="active">Алергія</span><span data-lang="cs">Alergie</span><span data-lang="ru">Аллергия</span><span data-lang="en">Allergy</span></p><p class="template-phrase">I am allergic to...</p><p class="template-translation"><span data-lang="uk" class="active">В мене алергія на...</span><span data-lang="cs">Mám alergii na...</span><span data-lang="ru">У меня аллергия на...</span><span data-lang="en">I am allergic to...</span></p></div>
+    <div class="card fr fc-rose tc-rose template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">05</span><p class="template-tag"><span data-lang="uk" class="active">Меню</span><span data-lang="cs">Menu</span><span data-lang="ru">Меню</span><span data-lang="en">Menu</span></p><p class="template-phrase">Menu, please</p><p class="template-translation"><span data-lang="uk" class="active">Меню, будь ласка</span><span data-lang="cs">Menu, prosím</span><span data-lang="ru">Меню, пожалуйста</span><span data-lang="en">Menu, please</span></p></div>
+    <div class="card fr fc-rose tc-rose template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">06</span><p class="template-tag"><span data-lang="uk" class="active">Вода</span><span data-lang="cs">Voda</span><span data-lang="ru">Вода</span><span data-lang="en">Water</span></p><p class="template-phrase">Water, no ice</p><p class="template-translation"><span data-lang="uk" class="active">Воду, без льоду</span><span data-lang="cs">Vodu, bez ledu</span><span data-lang="ru">Воду, без льда</span><span data-lang="en">Water, no ice</span></p></div>
+  </div>
+  <div style="height:28px"></div>
+
+  <p class="section-sub-label" style="color:var(--teal)"><span data-lang="uk" class="active">🛒 Магазин</span><span data-lang="cs">🛒 Obchod</span><span data-lang="ru">🛒 Магазин</span><span data-lang="en">🛒 Shopping</span></p>
+  <div class="templates-grid stagger-children reveal">
+    <div class="card fr fc-teal tc-teal template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">01</span><p class="template-tag"><span data-lang="uk" class="active">Ціна</span><span data-lang="cs">Cena</span><span data-lang="ru">Цена</span><span data-lang="en">Price</span></p><p class="template-phrase">How much is this?</p><p class="template-translation"><span data-lang="uk" class="active">Скільки це коштує?</span><span data-lang="cs">Kolik to stojí?</span><span data-lang="ru">Сколько это стоит?</span><span data-lang="en">How much is this?</span></p></div>
+    <div class="card fr fc-teal tc-teal template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">02</span><p class="template-tag"><span data-lang="uk" class="active">Розмір</span><span data-lang="cs">Velikost</span><span data-lang="ru">Размер</span><span data-lang="en">Size</span></p><p class="template-phrase">Do you have size M?</p><p class="template-translation"><span data-lang="uk" class="active">Є розмір M?</span><span data-lang="cs">Máte velikost M?</span><span data-lang="ru">Есть размер M?</span><span data-lang="en">Do you have size M?</span></p></div>
+    <div class="card fr fc-teal tc-teal template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">03</span><p class="template-tag"><span data-lang="uk" class="active">Примірка</span><span data-lang="cs">Zkoušení</span><span data-lang="ru">Примерка</span><span data-lang="en">Fitting</span></p><p class="template-phrase">Can I try this on?</p><p class="template-translation"><span data-lang="uk" class="active">Можна приміряти?</span><span data-lang="cs">Můžu si to vyzkoušet?</span><span data-lang="ru">Можно примерить?</span><span data-lang="en">Can I try this on?</span></p></div>
+    <div class="card fr fc-teal tc-teal template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">04</span><p class="template-tag"><span data-lang="uk" class="active">Картка</span><span data-lang="cs">Karta</span><span data-lang="ru">Карта</span><span data-lang="en">Card</span></p><p class="template-phrase">Can I pay by card?</p><p class="template-translation"><span data-lang="uk" class="active">Можна карткою?</span><span data-lang="cs">Můžu platit kartou?</span><span data-lang="ru">Можно картой?</span><span data-lang="en">Can I pay by card?</span></p></div>
+    <div class="card fr fc-teal tc-teal template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">05</span><p class="template-tag"><span data-lang="uk" class="active">Пакет</span><span data-lang="cs">Taška</span><span data-lang="ru">Пакет</span><span data-lang="en">Bag</span></p><p class="template-phrase">A bag, please</p><p class="template-translation"><span data-lang="uk" class="active">Пакет, будь ласка</span><span data-lang="cs">Tašku, prosím</span><span data-lang="ru">Пакет, пожалуйста</span><span data-lang="en">A bag, please</span></p></div>
+  </div>
+  <div style="height:28px"></div>
+
+  <p class="section-sub-label" style="color:var(--amber)"><span data-lang="uk" class="active">💼 Робота</span><span data-lang="cs">💼 Práce</span><span data-lang="ru">💼 Работа</span><span data-lang="en">💼 Work</span></p>
+  <div class="templates-grid stagger-children reveal">
+    <div class="card fr fc-amber tc-amber template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">01</span><p class="template-tag"><span data-lang="uk" class="active">Привітання</span><span data-lang="cs">Pozdrav</span><span data-lang="ru">Приветствие</span><span data-lang="en">Greeting</span></p><p class="template-phrase">Good morning, everyone</p><p class="template-translation"><span data-lang="uk" class="active">Доброго ранку всіх</span><span data-lang="cs">Dobré ráno všem</span><span data-lang="ru">Доброго утра всем</span><span data-lang="en">Good morning, everyone</span></p></div>
+    <div class="card fr fc-amber tc-amber template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">02</span><p class="template-tag"><span data-lang="uk" class="active">Статус</span><span data-lang="cs">Stav</span><span data-lang="ru">Статус</span><span data-lang="en">Status</span></p><p class="template-phrase">I'm working on it</p><p class="template-translation"><span data-lang="uk" class="active">Я над цим працюю</span><span data-lang="cs">Na tom pracuju</span><span data-lang="ru">Я над этим работаю</span><span data-lang="en">I'm working on it</span></p></div>
+    <div class="card fr fc-amber tc-amber template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">03</span><p class="template-tag"><span data-lang="uk" class="active">Зустріч</span><span data-lang="cs">Schůzka</span><span data-lang="ru">Встреча</span><span data-lang="en">Meeting</span></p><p class="template-phrase">Let's schedule a call</p><p class="template-translation"><span data-lang="uk" class="active">Давайте заплануємо дзвінок</span><span data-lang="cs">Naplánujme hovor</span><span data-lang="ru">Давайте запланируем звонок</span><span data-lang="en">Let's schedule a call</span></p></div>
+    <div class="card fr fc-amber tc-amber template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">04</span><p class="template-tag"><span data-lang="uk" class="active">Пошта</span><span data-lang="cs">E-mail</span><span data-lang="ru">Почта</span><span data-lang="en">Email</span></p><p class="template-phrase">I'll send you an email</p><p class="template-translation"><span data-lang="uk" class="active">Я надішлю вам лист</span><span data-lang="cs">Pošlu vám e-mail</span><span data-lang="ru">Я пришлю вам письмо</span><span data-lang="en">I'll send you an email</span></p></div>
+    <div class="card fr fc-amber tc-amber template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">05</span><p class="template-tag"><span data-lang="uk" class="active">Прощання</span><span data-lang="cs">Rozloučení</span><span data-lang="ru">Прощание</span><span data-lang="en">Farewell</span></p><p class="template-phrase">Have a good evening</p><p class="template-translation"><span data-lang="uk" class="active">Гарного вечора</span><span data-lang="cs">Hezký večer</span><span data-lang="ru">Хорошего вечера</span><span data-lang="en">Have a good evening</span></p></div>
+  </div>
+  <div style="height:28px"></div>
+
+  <p class="section-sub-label" style="color:var(--violet)"><span data-lang="uk" class="active">✈️ Подорож</span><span data-lang="cs">✈️ Cestování</span><span data-lang="ru">✈️ Путешествие</span><span data-lang="en">✈️ Travel</span></p>
+  <div class="templates-grid stagger-children reveal">
+    <div class="card fr fc-violet tc-violet template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">01</span><p class="template-tag"><span data-lang="uk" class="active">Квиток</span><span data-lang="cs">Lístek</span><span data-lang="ru">Билет</span><span data-lang="en">Ticket</span></p><p class="template-phrase">One ticket to...</p><p class="template-translation"><span data-lang="uk" class="active">Один квиток до...</span><span data-lang="cs">Jeden lístek do...</span><span data-lang="ru">Один билет до...</span><span data-lang="en">One ticket to...</span></p></div>
+    <div class="card fr fc-violet tc-violet template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">02</span><p class="template-tag"><span data-lang="uk" class="active">Готель</span><span data-lang="cs">Hotel</span><span data-lang="ru">Отель</span><span data-lang="en">Hotel</span></p><p class="template-phrase">I have a reservation</p><p class="template-translation"><span data-lang="uk" class="active">У мене бронь</span><span data-lang="cs">Mám rezervaci</span><span data-lang="ru">У меня бронь</span><span data-lang="en">I have a reservation</span></p></div>
+    <div class="card fr fc-violet tc-violet template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">03</span><p class="template-tag"><span data-lang="uk" class="active">Орієнтування</span><span data-lang="cs">Orientace</span><span data-lang="ru">Ориентирование</span><span data-lang="en">Directions</span></p><p class="template-phrase">Where is the station?</p><p class="template-translation"><span data-lang="uk" class="active">Де вокзал?</span><span data-lang="cs">Kde je nádraží?</span><span data-lang="ru">Где вокзал?</span><span data-lang="en">Where is the station?</span></p></div>
+    <div class="card fr fc-violet tc-violet template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">04</span><p class="template-tag"><span data-lang="uk" class="active">Транспорт</span><span data-lang="cs">Doprava</span><span data-lang="ru">Транспорт</span><span data-lang="en">Transport</span></p><p class="template-phrase">Which bus goes to...?</p><p class="template-translation"><span data-lang="uk" class="active">Який автобус йде до...?</span><span data-lang="cs">Který autobus jede do...?</span><span data-lang="ru">Какой автобус идёт до...?</span><span data-lang="en">Which bus goes to...?</span></p></div>
+    <div class="card fr fc-violet tc-violet template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">05</span><p class="template-tag"><span data-lang="uk" class="active">Допомога</span><span data-lang="cs">Pomoc</span><span data-lang="ru">Помощь</span><span data-lang="en">Help</span></p><p class="template-phrase">I lost my passport</p><p class="template-translation"><span data-lang="uk" class="active">Я загубив паспорт</span><span data-lang="cs">Ztratil jsem pas</span><span data-lang="ru">Я потерял паспорт</span><span data-lang="en">I lost my passport</span></p></div>
+  </div>
+  <div style="height:28px"></div>
+
+  <p class="section-sub-label" style="color:var(--sky)"><span data-lang="uk" class="active">🏥 Лікарня</span><span data-lang="cs">🏥 Nemocnice</span><span data-lang="ru">🏥 Больница</span><span data-lang="en">🏥 Hospital</span></p>
+  <div class="templates-grid stagger-children reveal">
+    <div class="card fr fc-sky tc-sky template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">01</span><p class="template-tag"><span data-lang="uk" class="active">Біль</span><span data-lang="cs">Bolest</span><span data-lang="ru">Боль</span><span data-lang="en">Pain</span></p><p class="template-phrase">I have a headache</p><p class="template-translation"><span data-lang="uk" class="active">У мене болить голова</span><span data-lang="cs">Bolí mě hlava</span><span data-lang="ru">У меня болит голова</span><span data-lang="en">I have a headache</span></p></div>
+    <div class="card fr fc-sky tc-sky template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">02</span><p class="template-tag"><span data-lang="uk" class="active">Лікар</span><span data-lang="cs">Lékař</span><span data-lang="ru">Врач</span><span data-lang="en">Doctor</span></p><p class="template-phrase">I need to see a doctor</p><p class="template-translation"><span data-lang="uk" class="active">Мені потрібен лікар</span><span data-lang="cs">Potřebuji vidět lékaře</span><span data-lang="ru">Мне нужен врач</span><span data-lang="en">I need to see a doctor</span></p></div>
+    <div class="card fr fc-sky tc-sky template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">03</span><p class="template-tag"><span data-lang="uk" class="active">Ліки</span><span data-lang="cs">Léky</span><span data-lang="ru">Лекарство</span><span data-lang="en">Medicine</span></p><p class="template-phrase">Where is the pharmacy?</p><p class="template-translation"><span data-lang="uk" class="active">Де аптека?</span><span data-lang="cs">Kde je lékárna?</span><span data-lang="ru">Где аптека?</span><span data-lang="en">Where is the pharmacy?</span></p></div>
+    <div class="card fr fc-sky tc-sky template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">04</span><p class="template-tag"><span data-lang="uk" class="active">Страхування</span><span data-lang="cs">Pojištění</span><span data-lang="ru">Страховка</span><span data-lang="en">Insurance</span></p><p class="template-phrase">I have insurance</p><p class="template-translation"><span data-lang="uk" class="active">В мене є страхування</span><span data-lang="cs">Mám pojištění</span><span data-lang="ru">У меня есть страховка</span><span data-lang="en">I have insurance</span></p></div>
+  </div>
+  <div style="height:28px"></div>
+
+  <p class="section-sub-label" style="color:var(--lime)"><span data-lang="uk" class="active">🏠 Дім</span><span data-lang="cs">🏠 Domov</span><span data-lang="ru">🏠 Дом</span><span data-lang="en">🏠 Home</span></p>
+  <div class="templates-grid stagger-children reveal">
+    <div class="card fr fc-lime tc-lime template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">01</span><p class="template-tag"><span data-lang="uk" class="active">Повертання</span><span data-lang="cs">Návrat</span><span data-lang="ru">Возвращение</span><span data-lang="en">Return</span></p><p class="template-phrase">I'm home</p><p class="template-translation"><span data-lang="uk" class="active">Я вдома</span><span data-lang="cs">Jsem doma</span><span data-lang="ru">Я дома</span><span data-lang="en">I'm home</span></p></div>
+    <div class="card fr fc-lime tc-lime template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">02</span><p class="template-tag"><span data-lang="uk" class="active">Втома</span><span data-lang="cs">Únava</span><span data-lang="ru">Усталость</span><span data-lang="en">Tired</span></p><p class="template-phrase">I'm so tired today</p><p class="template-translation"><span data-lang="uk" class="active">Я так втомився сьогодні</span><span data-lang="cs">Jsem dnes tak unavený</span><span data-lang="ru">Я так устал сегодня</span><span data-lang="en">I'm so tired today</span></p></div>
+    <div class="card fr fc-lime tc-lime template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">03</span><p class="template-tag"><span data-lang="uk" class="active">Їжа</span><span data-lang="cs">Jídlo</span><span data-lang="ru">Еда</span><span data-lang="en">Food</span></p><p class="template-phrase">What's for dinner?</p><p class="template-translation"><span data-lang="uk" class="active">Що на вечерю?</span><span data-lang="cs">Co je k večeři?</span><span data-lang="ru">Что на ужин?</span><span data-lang="en">What's for dinner?</span></p></div>
+    <div class="card fr fc-lime tc-lime template-card"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><span class="tc-num">04</span><p class="template-tag"><span data-lang="uk" class="active">Сон</span><span data-lang="cs">Spánek</span><span data-lang="ru">Сон</span><span data-lang="en">Sleep</span></p><p class="template-phrase">I need to sleep</p><p class="template-translation"><span data-lang="uk" class="active">Мені треба спати</span><span data-lang="cs">Potřebuji spát</span><span data-lang="ru">Мне надо спать</span><span data-lang="en">I need to sleep</span></p></div>
+  </div>
+</section>
+
+<div class="divider-wrap"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+<!-- 05 Помилки -->
+<section class="section">
+  <p class="section-label sl-sky"><span class="sl-dot"></span>
+    <span data-lang="uk" class="active">05 — Типові помилки</span><span data-lang="cs">05 — Časté chyby</span><span data-lang="ru">05 — Типичные ошибки</span><span data-lang="en">05 — Common Mistakes</span>
+  </p>
+  <div class="mistakes-grid stagger-children reveal">
+    <div class="mistake-row fr fc-violet"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><div class="mr-num">01</div><div class="mr-bad"><p class="mr-label"><span data-lang="uk" class="active">Помилка</span><span data-lang="cs">Chyba</span><span data-lang="ru">Ошибка</span><span data-lang="en">Wrong</span></p><p>I am agree</p></div><div class="mr-good"><p class="mr-label"><span data-lang="uk" class="active">Правильно</span><span data-lang="cs">Správně</span><span data-lang="ru">Правильно</span><span data-lang="en">Correct</span></p><p>I agree</p></div></div>
+    <div class="mistake-row fr fc-violet"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><div class="mr-num">02</div><div class="mr-bad"><p class="mr-label"><span data-lang="uk" class="active">Помилка</span><span data-lang="cs">Chyba</span><span data-lang="ru">Ошибка</span><span data-lang="en">Wrong</span></p><p>She don't like</p></div><div class="mr-good"><p class="mr-label"><span data-lang="uk" class="active">Правильно</span><span data-lang="cs">Správně</span><span data-lang="ru">Правильно</span><span data-lang="en">Correct</span></p><p>She doesn't like</p></div></div>
+    <div class="mistake-row fr fc-violet"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><div class="mr-num">03</div><div class="mr-bad"><p class="mr-label"><span data-lang="uk" class="active">Помилка</span><span data-lang="cs">Chyba</span><span data-lang="ru">Ошибка</span><span data-lang="en">Wrong</span></p><p>I went to home</p></div><div class="mr-good"><p class="mr-label"><span data-lang="uk" class="active">Правильно</span><span data-lang="cs">Správně</span><span data-lang="ru">Правильно</span><span data-lang="en">Correct</span></p><p>I went home</p></div></div>
+    <div class="mistake-row fr fc-violet"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><div class="mr-num">04</div><div class="mr-bad"><p class="mr-label"><span data-lang="uk" class="active">Помилка</span><span data-lang="cs">Chyba</span><span data-lang="ru">Ошибка</span><span data-lang="en">Wrong</span></p><p>What means this?</p></div><div class="mr-good"><p class="mr-label"><span data-lang="uk" class="active">Правильно</span><span data-lang="cs">Správně</span><span data-lang="ru">Правильно</span><span data-lang="en">Correct</span></p><p>What does this mean?</p></div></div>
+    <div class="mistake-row fr fc-violet"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><div class="mr-num">05</div><div class="mr-bad"><p class="mr-label"><span data-lang="uk" class="active">Помилка</span><span data-lang="cs">Chyba</span><span data-lang="ru">Ошибка</span><span data-lang="en">Wrong</span></p><p>I have 20 years</p></div><div class="mr-good"><p class="mr-label"><span data-lang="uk" class="active">Правильно</span><span data-lang="cs">Správně</span><span data-lang="ru">Правильно</span><span data-lang="en">Correct</span></p><p>I am 20 years old</p></div></div>
+    <div class="mistake-row fr fc-violet"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span><div class="mr-num">06</div><div class="mr-bad"><p class="mr-label"><span data-lang="uk" class="active">Помилка</span><span data-lang="cs">Chyba</span><span data-lang="ru">Ошибка</span><span data-lang="en">Wrong</span></p><p>Could you to help me?</p></div><div class="mr-good"><p class="mr-label"><span data-lang="uk" class="active">Правильно</span><span data-lang="cs">Správně</span><span data-lang="ru">Правильно</span><span data-lang="en">Correct</span></p><p>Could you help me?</p></div></div>
+  </div>
+</section>
+
+<div class="divider-wrap"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+<!-- 06 Практика -->
+<section class="section">
+  <p class="section-label sl-lime"><span class="sl-dot"></span>
+    <span data-lang="uk" class="active">06 — Щоденна практика</span><span data-lang="cs">06 — Denní praxe</span><span data-lang="ru">06 — Ежедневная практика</span><span data-lang="en">06 — Daily Practice</span>
+  </p>
+  <div class="practice-block pb-rose fr fc-rose reveal"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+    <h3 class="pb-title"><span data-lang="uk" class="active">Ранок — 10 хвилин</span><span data-lang="cs">Ráno — 10 minut</span><span data-lang="ru">Утро — 10 минут</span><span data-lang="en">Morning — 10 min</span></h3>
+    <p class="pb-desc"><span data-lang="uk" class="active">Shadowing з аудіо або відео. Слухай → повторюй одразу → без пауз.</span><span data-lang="cs">Shadowing s audiem nebo videem. Poslouchej → opakuj hned → bez pauz.</span><span data-lang="ru">Шедовинг с аудио или видео. Слушай → повторяй сразу → без пауз.</span><span data-lang="en">Shadowing with audio or video. Listen → repeat immediately → no pauses.</span></p>
+    <div class="pb-steps">
+      <div class="pb-step"><span class="pb-step-num">1</span><span data-lang="uk" class="active">Відкрий будь-яке відео англійською (YouTube, Netflix)</span><span data-lang="cs">Otevři jakékoliv video anglicky</span><span data-lang="ru">Открой любое видео на английском</span><span data-lang="en">Open any video in English</span></div>
+      <div class="pb-step"><span class="pb-step-num">2</span><span data-lang="uk" class="active">Слухай 2 секунди → зупини → повтори ОДРАЗУ</span><span data-lang="cs">Poslouchej 2 sekundy → zastav → opakuj HNED</span><span data-lang="ru">Слушай 2 секунды → останови → повтори СРАЗУ</span><span data-lang="en">Listen 2 seconds → pause → repeat IMMEDIATELY</span></div>
+      <div class="pb-step"><span class="pb-step-num">3</span><span data-lang="uk" class="active">Не перевіряй себе. Навіть якщо криво — продовжуй</span><span data-lang="cs">Nekontroluj se. I když špatně — pokračuj</span><span data-lang="ru">Не проверяй себя. Даже если криво — продолжай</span><span data-lang="en">Don't check yourself. Even if wrong — keep going</span></div>
+    </div>
+  </div>
+  <div class="practice-block pb-teal fr fc-teal reveal"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+    <h3 class="pb-title"><span data-lang="uk" class="active">День — 5 хвилин</span><span data-lang="cs">Den — 5 minut</span><span data-lang="ru">День — 5 минут</span><span data-lang="en">Day — 5 min</span></h3>
+    <p class="pb-desc"><span data-lang="uk" class="active">Флеш-фрази. Переглянь 5 фраз. Скажи кожну вголос 3 рази швидко.</span><span data-lang="cs">Flash-fráze. Projdi 5 frází. Řekni každou nahlas 3x rychle.</span><span data-lang="ru">Флеш-фразы. Просмотри 5 фраз. Скажи каждую вслух 3 раза быстро.</span><span data-lang="en">Flash phrases. Review 5 phrases. Say each aloud 3 times fast.</span></p>
+    <div class="pb-steps">
+      <div class="pb-step"><span class="pb-step-num">1</span><span data-lang="uk" class="active">Вибери одну ситуацію (ресторан, робота тощо)</span><span data-lang="cs">Vyber jednu situaci</span><span data-lang="ru">Выбери одну ситуацию</span><span data-lang="en">Pick one situation</span></div>
+      <div class="pb-step"><span class="pb-step-num">2</span><span data-lang="uk" class="active">Прочитай фразу → закрий очі → скажи → ще раз → ще</span><span data-lang="cs">Přečti → zavři oči → řekni → ještě</span><span data-lang="ru">Прочитай → закрой глаза → скажи → ещё</span><span data-lang="en">Read → close eyes → say → again</span></div>
+      <div class="pb-step"><span class="pb-step-num">3</span><span data-lang="uk" class="active">Спробуй сказати без попереднього читання</span><span data-lang="cs">Zkus říct bez čtení</span><span data-lang="ru">Попробуй сказать без чтения</span><span data-lang="en">Try to say without reading first</span></div>
+    </div>
+  </div>
+  <div class="practice-block pb-violet fr fc-violet reveal"><span class="f-tl"></span><span class="f-tr"></span><span class="f-bl"></span><span class="f-br"></span><span class="f-top"></span>
+    <h3 class="pb-title"><span data-lang="uk" class="active">Вечір — 10 хвилин</span><span data-lang="cs">Večer — 10 minut</span><span data-lang="ru">Вечер — 10 минут</span><span data-lang="en">Evening — 10 min</span></h3>
+    <p class="pb-desc"><span data-lang="uk" class="active">Самозамовлення. Уяви ситуацію і проговори її вголос англійською.</span><span data-lang="cs">Samomluva. Představ si situaci a promluv ji nahlas anglicky.</span><span data-lang="ru">Саморазговор. Представь ситуацию и проговори её вслух.</span><span data-lang="en">Self-talk. Imagine a situation and speak it aloud in English.</span></p>
+    <div class="pb-steps">
+      <div class="pb-step"><span class="pb-step-num">1</span><span data-lang="uk" class="active">Уяви: ти в ресторані. Замовляєш. Що скажеш?</span><span data-lang="cs">Představ si: jsi v restauraci. Co řekneš?</span><span data-lang="ru">Представь: ты в ресторане. Что скажешь?</span><span data-lang="en">Imagine: you're in a restaurant. What do you say?</span></div>
+      <div class="pb-step"><span class="pb-step-num">2</span><span data-lang="uk" class="active">Скажи 3-5 фраз поспіль. Без стопу.</span><span data-lang="cs">Řekni 3-5 frází po sobě. Bez zastavení.</span><span data-lang="ru">Скажи 3-5 фраз подряд. Без остановки.</span><span data-lang="en">Say 3-5 phrases in a row. No stopping.</span></div>
+      <div class="pb-step"><span class="pb-step-num">3</span><span data-lang="uk" class="active">Помилився? Нічого. Продовжуй. Не виправляй.</span><span data-lang="cs">Chyba? Nic. Pokračuj.</span><span data-lang="ru">Ошибся? Ничего. Продолжай.</span><span data-lang="en">Mistake? Nothing. Keep going.</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="big-quote reveal">
+  <div class="quote-frame"><span class="qf qf1"></span><span class="qf qf2"></span><span class="qf qf3"></span><span class="qf qf4"></span>
+    <blockquote>
+      <span data-lang="uk" class="active">Мова — це не <span class="hl-rose">знання</span>.<br>Це <span class="hl-teal">рефлекс</span>.</span>
+      <span data-lang="cs">Jazyk není <span class="hl-rose">znalost</span>.<br>Je to <span class="hl-teal">reflex</span>.</span>
+      <span data-lang="ru">Язык — это не <span class="hl-rose">знание</span>.<br>Это <span class="hl-teal">рефлекс</span>.</span>
+      <span data-lang="en">Language is not <span class="hl-rose">knowledge</span>.<br>It is a <span class="hl-teal">reflex</span>.</span>
+    </blockquote>
+    <cite><span data-lang="uk" class="active">— Головний принцип системи</span><span data-lang="cs">— Hlavní princip systému</span><span data-lang="ru">— Главный принцип системы</span><span data-lang="en">— Core system principle</span></cite>
+  </div>
+</div>
+
+<footer><p>speak without thinking &nbsp;/&nbsp; <span>2026</span></p></footer>
+
+<script>
+// ===== Мова =====
+function setLang(lang) {
+  document.querySelectorAll('[data-lang]').forEach(el => el.classList.toggle('active', el.dataset.lang === lang));
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const map = { 'УКР': 'uk', 'ČES': 'cs', 'РУС': 'ru', 'ENG': 'en' };
+    btn.classList.toggle('active', map[btn.textContent.trim()] === lang);
+  });
+  setTimeout(animateTitleChars, 50);
+}
+
+// ===== Курсор =====
+const heart = document.getElementById('heartCursor');
+let mx = 0, my = 0, hx = 0, hy = 0;
+const trails = [0, 1, 2].map(i => document.getElementById('trail' + i));
+const tp = trails.map(() => ({ x: 0, y: 0 }));
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+function animateCursor() {
+  hx += (mx - hx) * 0.18; hy += (my - hy) * 0.18;
+  heart.style.left = hx + 'px'; heart.style.top = hy + 'px';
+  let px = hx, py = hy;
+  trails.forEach((t, i) => {
+    tp[i].x += (px - tp[i].x) * (0.08 - i * 0.02);
+    tp[i].y += (py - tp[i].y) * (0.08 - i * 0.02);
+    t.style.left = tp[i].x + 'px'; t.style.top = tp[i].y + 'px';
+    t.style.opacity = 0.3 - i * 0.1;
+    t.style.background = `rgba(232,93,117,${0.4 - i * 0.12})`;
+    t.style.transform = `translate(-50%,-50%) scale(${1 - i * 0.25})`;
+    px = tp[i].x; py = tp[i].y;
+  });
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+
+document.querySelectorAll('button, .card, .step, .ex, .flow-step, .mistake-row, .practice-block').forEach(el => {
+  el.addEventListener('mouseenter', () => heart.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => heart.classList.remove('hovering'));
+});
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('mousemove', e => {
+    const r = btn.getBoundingClientRect();
+    btn.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * 0.25}px, ${(e.clientY - r.top - r.height / 2) * 0.25}px)`;
+  });
+  btn.addEventListener('mouseleave', () => { btn.style.transform = 'translate(0,0)'; });
+});
+
+// ===== Заголовок =====
+function animateTitleChars() {
+  const gl = document.querySelector('.hero-title .line-gold');
+  if (!gl) return;
+  const as = gl.querySelector('[data-lang].active');
+  if (!as) return;
+  const t = as.textContent;
+  as.innerHTML = '';
+  t.split('').forEach((c, i) => {
+    const s = document.createElement('span');
+    s.className = 'char';
+    s.textContent = c === ' ' ? '\u00A0' : c;
+    s.style.animationDelay = (0.6 + i * 0.06) + 's';
+    as.appendChild(s);
+  });
+}
+animateTitleChars();
+
+// ===== Reveal =====
+const ro = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }), { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.reveal, .stagger-children').forEach(el => ro.observe(el));
+
+// ===== Hero паралакс =====
+const hf = document.querySelector('.hero-frame'), hr = document.querySelector('.hero');
+addEventListener('scroll', () => {
+  const s = scrollY;
+  if (hf && s < innerHeight) { hf.style.transform = `scale(${1 + s * 0.0003})`; hf.style.opacity = Math.max(0, 1 - s / innerHeight); }
+  if (hr && s < innerHeight) { hr.style.opacity = Math.max(0, 1 - s / (innerHeight * 0.7)); hr.style.transform = `translateY(${s * 0.25}px)`; }
+}, { passive: true });
+
+// ===== CANVAS АНІМОВАНИЙ ФОН =====
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Кольори в RGB для canvas
+const palette = [
+  { r: 232, g: 93, b: 117 },   // rose
+  { r: 61, g: 217, b: 182 },   // teal
+  { r: 167, g: 139, b: 250 },  // violet
+  { r: 232, g: 184, b: 76 },   // amber
+  { r: 56, g: 189, b: 248 },   // sky
+  { r: 163, g: 230, b: 53 },   // lime
+];
+
+// Плавні криві — "Aurora" хвилі
+const waves = [];
+for (let i = 0; i < 6; i++) {
+  waves.push({
+    color: palette[i],
+    yBase: H * (0.15 + i * 0.14),
+    amplitude: 60 + Math.random() * 80,
+    frequency: 0.002 + Math.random() * 0.003,
+    speed: 0.0003 + Math.random() * 0.0004,
+    phase: Math.random() * Math.PI * 2,
+    alpha: 0.025 + Math.random() * 0.015,
+    thickness: 80 + Math.random() * 120,
+    drift: (Math.random() - 0.5) * 0.0001
+  });
+}
+
+// Дрейфуючі частинки
+const particles = [];
+for (let i = 0; i < 60; i++) {
+  particles.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    vx: (Math.random() - 0.5) * 0.15,
+    vy: (Math.random() - 0.5) * 0.1 - 0.05,
+    size: 0.5 + Math.random() * 1.5,
+    color: palette[Math.floor(Math.random() * palette.length)],
+    alpha: 0.1 + Math.random() * 0.25,
+    pulse: Math.random() * Math.PI * 2,
+    pulseSpeed: 0.005 + Math.random() * 0.01
+  });
+}
+
+// Геометричні фігури — повільно обертаються ромби
+const shapes = [];
+for (let i = 0; i < 8; i++) {
+  shapes.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    size: 30 + Math.random() * 80,
+    rotation: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.0003,
+    vx: (Math.random() - 0.5) * 0.08,
+    vy: (Math.random() - 0.5) * 0.06,
+    color: palette[Math.floor(Math.random() * palette.length)],
+    alpha: 0.015 + Math.random() * 0.02,
+    sides: Math.random() > 0.5 ? 4 : 6  // ромби та шестикутники
+  });
+}
+
+// Концентричні кільця
+const rings = [];
+for (let i = 0; i < 4; i++) {
+  rings.push({
+    x: W * (0.2 + Math.random() * 0.6),
+    y: H * (0.2 + Math.random() * 0.6),
+    maxRadius: 100 + Math.random() * 200,
+    radius: 0,
+    speed: 0.15 + Math.random() * 0.2,
+    alpha: 0,
+    maxAlpha: 0.03 + Math.random() * 0.02,
+    color: palette[Math.floor(Math.random() * palette.length)],
+    delay: Math.random() * 200
+  });
+}
+
+let time = 0;
+let mouseX = W / 2, mouseY = H / 2;
+document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+function drawFrame() {
+  time++;
+  ctx.clearRect(0, 0, W, H);
+
+  // Малюємо "Aurora" хвилі
+  waves.forEach(w => {
+    w.phase += w.speed;
+    w.yBase += Math.sin(time * w.drift) * 0.05;
+
+    ctx.beginPath();
+    ctx.moveTo(0, w.yBase + Math.sin(w.phase) * w.amplitude);
+
+    for (let x = 0; x <= W; x += 4) {
+      const y = w.yBase + Math.sin(x * w.frequency + w.phase) * w.amplitude
+        + Math.sin(x * w.frequency * 0.5 + w.phase * 1.3) * w.amplitude * 0.4;
+      ctx.lineTo(x, y);
+    }
+
+    const { r, g, b } = w.color;
+    const grad = ctx.createLinearGradient(0, w.yBase - w.thickness, 0, w.yBase + w.thickness);
+    grad.addColorStop(0, `rgba(${r},${g},${b},0)`);
+    grad.addColorStop(0.3, `rgba(${r},${g},${b},${w.alpha})`);
+    grad.addColorStop(0.5, `rgba(${r},${g},${b},${w.alpha * 1.5})`);
+    grad.addColorStop(0.7, `rgba(${r},${g},${b},${w.alpha})`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = w.thickness;
+    ctx.stroke();
+  });
+
+  // Концентричні кільця
+  rings.forEach(ring => {
+    if (ring.delay > 0) { ring.delay--; return; }
+    ring.radius += ring.speed;
+    ring.alpha = ring.maxAlpha * (1 - ring.radius / ring.maxRadius);
+
+    if (ring.radius > ring.maxRadius) {
+      ring.radius = 0;
+      ring.x = W * (0.2 + Math.random() * 0.6);
+      ring.y = H * (0.2 + Math.random() * 0.6);
+      ring.color = palette[Math.floor(Math.random() * palette.length)];
+      ring.delay = Math.random() * 100;
+    }
+
+    if (ring.alpha > 0) {
+      const { r, g, b } = ring.color;
+      ctx.beginPath();
+      ctx.arc(ring.x, ring.y, Math.max(1, ring.radius), 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${ring.alpha})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  });
+
+  // Геометричні фігури
+  shapes.forEach(s => {
+    s.x += s.vx;
+    s.y += s.vy;
+    s.rotation += s.rotSpeed;
+
+    // Обгортка по краях
+    if (s.x < -s.size) s.x = W + s.size;
+    if (s.x > W + s.size) s.x = -s.size;
+    if (s.y < -s.size) s.y = H + s.size;
+    if (s.y > H + s.size) s.y = -s.size;
+
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rotation);
+
+    const { r, g, b } = s.color;
+    ctx.strokeStyle = `rgba(${r},${g},${b},${s.alpha})`;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+
+    for (let i = 0; i <= s.sides; i++) {
+      const angle = (i / s.sides) * Math.PI * 2;
+      const px = Math.cos(angle) * s.size;
+      const py = Math.sin(angle) * s.size;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+
+    // Внутрішній контур
+    ctx.beginPath();
+    for (let i = 0; i <= s.sides; i++) {
+      const angle = (i / s.sides) * Math.PI * 2;
+      const px = Math.cos(angle) * s.size * 0.5;
+      const py = Math.sin(angle) * s.size * 0.5;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(${r},${g},${b},${s.alpha * 0.5})`;
+    ctx.stroke();
+
+    ctx.restore();
+  });
+
+  // Частинки
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.pulse += p.pulseSpeed;
+
+    // Обгортка
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+
+    // Легкий відгук на мишку
+    const dx = mouseX - p.x;
+    const dy = mouseY - p.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 200) {
+      const force = (200 - dist) * 0.00003;
+      p.vx += dx * force;
+      p.vy += dy * force;
+    }
+
+    // Згасання швидкості
+    p.vx *= 0.999;
+    p.vy *= 0.999;
+
+    const pulseAlpha = p.alpha * (0.5 + 0.5 * Math.sin(p.pulse));
+    const { r, g, b } = p.color;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${pulseAlpha})`;
+    ctx.fill();
+
+    // Тонке сяйво навколо частинки
+    if (p.size > 1) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${pulseAlpha * 0.1})`;
+      ctx.fill();
+    }
+  });
+
+  // З'єднання близьких частинок лініями
+  ctx.lineWidth = 0.3;
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        const alpha = (1 - dist / 120) * 0.06;
+        const ci = particles[i].color;
+        const cj = particles[j].color;
+        const mr = Math.round((ci.r + cj.r) / 2);
+        const mg = Math.round((ci.g + cj.g) / 2);
+        const mb = Math.round((ci.b + cj.b) / 2);
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(${mr},${mg},${mb},${alpha})`;
+        ctx.stroke();
+      }
+    }
+  }
+
+  requestAnimationFrame(drawFrame);
+}
+
+drawFrame();
+</script>
+</body>
+</html>
